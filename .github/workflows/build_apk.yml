@@ -1,0 +1,73 @@
+name: Build Mission Alarm Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Normalize Folder Structure & Scaffold Gradle Files
+        run: |
+          mkdir -p /tmp/backup
+          if [ -d "Alarmify" ]; then
+            cp -r Alarmify/* /tmp/backup/
+            rm -rf Alarmify
+          else
+            cp -r android ios lib assets pubspec.yaml /tmp/backup/ 2>/dev/null || true
+          fi
+
+          flutter create . --project-name missionalarm --org com.opensource --platforms=android
+
+          cp -r /tmp/backup/android/* android/
+          cp -r /tmp/backup/lib/* lib/
+          mkdir -p assets/sounds
+          cp -r /tmp/backup/assets/* assets/ 2>/dev/null || true
+          cp /tmp/backup/pubspec.yaml pubspec.yaml
+
+          sed -i 's/android:DirectBootAware="true"/android:directBootAware="true"/g' android/app/src/main/AndroidManifest.xml
+          sed -i 's/package="com.opensource.missionalarm"//g' android/app/src/main/AndroidManifest.xml
+          sed -i 's/ic_Dialog_info/ic_dialog_info/g' android/app/src/main/kotlin/com/opensource/missionalarm/alarm/AlarmReceiver.kt
+
+          sed -i '/isar/d' pubspec.yaml
+          sed -i '/build_runner/d' pubspec.yaml
+
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/g' android/app/build.gradle
+          sed -i 's/compileSdk flutter.compileSdkVersion/compileSdk 34/g' android/app/build.gradle
+          sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 23/g' android/app/build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/g' android/app/build.gradle
+          cat << 'EOF' >> android/app/build.gradle
+
+          dependencies {
+              implementation "androidx.core:core-ktx:1.13.1"
+          }
+          EOF
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Build Release APK
+        run: flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload Ready-to-Install APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mission-Alarm-Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
