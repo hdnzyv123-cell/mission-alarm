@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Mission Alarm</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.opensource.missionalarm</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+        <string>fetch</string>
+        <string>processing</string>
+    </array>
+    <key>NSCameraUsageDescription</key>
+    <string>Mission Alarm requires camera access to scan your registered household barcode/QR code to dismiss the alarm.</string>
+    <key>NSMotionUsageDescription</key>
+    <string>Mission Alarm uses accelerometer data to count physical shakes during the Shake Challenge.</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>Mission Alarm accesses local audio files for custom alarm ringtones.</string>
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>com.opensource.missionalarm.reschedule</string>
+    </array>
+</dict>
+</plist>
